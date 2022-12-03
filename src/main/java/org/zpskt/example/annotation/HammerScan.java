@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import({HammerScannerRegister.class})//向IOC注入ForestScannerRegister类
+@Import({HammerScannerRegister.class})//向IOC注入HammerScannerRegister类
 public @interface HammerScan {
 
     String[] value() default {};
