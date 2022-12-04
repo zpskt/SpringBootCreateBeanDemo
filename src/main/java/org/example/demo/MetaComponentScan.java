@@ -10,6 +10,7 @@ import java.lang.annotation.*;
 @Documented
 @Import({MetaAutoConfigureRegistrar.class})
 public @interface MetaComponentScan {
+
     /**
      * 当指定了值的时候，主要加载这些包路径下，包含@Meta注解的类；
      * 如果全是默认值（即为空），则扫描这个注解所在类对应的包路径下所有包含@Meta的类

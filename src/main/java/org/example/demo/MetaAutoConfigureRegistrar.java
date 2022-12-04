@@ -25,62 +25,74 @@ import java.util.Set;
 public class MetaAutoConfigureRegistrar
         implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
 
+    /**
+     *
+     */
     private ResourceLoader resourceLoader;
 
     private Environment environment;
 
+    /**
+     * 实现ResourceLoaderAware接口方法，可以获得外部资源xml、txt等。
+     * @param resourceLoader
+     */
     @Override
     public void setResourceLoader(ResourceLoader resourceLoader) {
         this.resourceLoader = resourceLoader;
     }
 
+    /**
+     * 实现EnvironmentAware接口方法，此属性可以获得application.properties中的属性值
+     * @param environment
+     */
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = environment;
     }
 
     /**
-     *
+     * 核心！！注册bean
      * @param importingClassMetadata 注解元数据，多半是用来获取注解的属性
      * @param registry bean 定义注册器
      */
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        //新建一个元注解扫描类，过滤出来要进行新建的Bean
         MetaBeanDefinitionScanner scanner =
                 new MetaBeanDefinitionScanner(registry, true, this.environment, this.resourceLoader);
+        //设置扫描包路径
         Set<String> packagesToScan = this.getPackagesToScan(importingClassMetadata);
+        //根据扫描包路径，元注解扫描类去扫描对应的包，过滤出对应的类
+        //找到以后就会注册到Bean容器中，当然我们的代码到这里就结束了，再向下的步骤就是Spring自己干了
         scanner.scan(packagesToScan.toArray(new String[]{}));
     }
 
-    private static class MetaBeanDefinitionScanner extends ClassPathBeanDefinitionScanner {
-        // ... 参考前面，这里省略
-        public MetaBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
-                                         Environment environment, ResourceLoader resourceLoader) {
-            super(registry, useDefaultFilters, environment, resourceLoader);
-            registerFilters();
-        }
-
-        protected void registerFilters() {
-            //注册一个AnnotationTypeFilter，确保过滤获取所有@Meta注解的类
-            addIncludeFilter(new AnnotationTypeFilter(Meta.class));
-        }
-    }
-
+    /**
+     * 找到要扫描的包路径，set存储
+     * @param metadata 注解元数据
+     * @return
+     */
     private Set<String> getPackagesToScan(AnnotationMetadata metadata) {
+        //获取使用元数据扫描注解的类的注解属性值
         AnnotationAttributes attributes =
                 AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(MetaComponentScan.class.getName()));
+        //取出注解中的basePackages值
         String[] basePackages = attributes.getStringArray("basePackages");
+        //取出注解中的basePackageClasses值
         Class<?>[] basePackageClasses = attributes.getClassArray("basePackageClasses");
-
+        //新建双向链表存储 包扫描路径
         Set<String> packagesToScan = new LinkedHashSet<>(Arrays.asList(basePackages));
         for (Class clz : basePackageClasses) {
+            //添加扫描路径
             packagesToScan.add(ClassUtils.getPackageName(clz));
         }
 
         if (packagesToScan.isEmpty()) {
+            //如果到这里包扫描路径为空，说明使用MetaComponentScan注解的时候没有设定值
+            //那么就按照这个注解使用地的包路径作为扫描路径
             packagesToScan.add(ClassUtils.getPackageName(metadata.getClassName()));
         }
-
+        // 返回包路径
         return packagesToScan;
     }
 }
