@@ -5,3 +5,5 @@
 [手写Spring的Bean注册器](手写SpringBean注册器.md)
 
 [手写Spring的Bean注册器PDF](./resources/手写SpringBean注册器.pdf)
+
+[02-设置自定义配置项](./CustomConfigurationItem/README.md)
